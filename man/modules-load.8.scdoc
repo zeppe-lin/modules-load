@@ -35,14 +35,14 @@ vendor-provided module lists.
 
 # OPTIONS
 
-*-v*
-	Verbose.
-	Print the name of each module before loading.
-
 *-n*
 	Dry run.
 	Parse configuration files and print modules, but do not load
 	them.
+
+*-v*
+	Verbose.
+	Print the name of each module before loading.
 
 # FILES
 
