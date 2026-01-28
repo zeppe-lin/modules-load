@@ -21,6 +21,13 @@ allowing local administrator overrides and vendor defaults to coexist
 predictably.
 
 
+RATIONALE
+=========
+
+For background on why `modules-load` replaces manual `modprobe` calls
+in `rc.modules`, see [RATIONALE.md](RATIONALE.md).
+
+
 REQUIREMENTS
 ============
 
