@@ -1,0 +1,21 @@
+name: Lint CI
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Install lint dependencies
+      run: sudo apt-get install -y shellcheck
+
+    - name: Check src scripts for errors
+      run: cd src && shellcheck -s sh modules-load.in
+

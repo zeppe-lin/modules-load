@@ -1,0 +1,90 @@
+MODULES-LOAD.D(5)
+
+# NAME
+
+modules-load.d - configuration directories for loading kernel modules at boot
+
+# SYNOPSIS
+
+/etc/modules-load.d/\*.conf
+
+/run/modules-load.d/\*.conf
+
+/lib/modules-load.d/\*.conf
+
+# DESCRIPTION
+
+The _modules-load.d_ directories provide configuration files for
+loading kernel modules at boot.
+Files must end with "*.conf*" and contain one module name per line.
+Lines beginning with '*#*' are comments and ignored.
+Blank lines are ignored.
+
+Only module names are accepted.
+Arguments or options are not supported.
+Module parameters must be set in *modprobe.d*(5).
+
+# CONFIGURATION DIRECTORIES AND PRECEDENCE
+
+Configuration files are read from the directories listed in SYNOPSIS
+in that order of precedence:
+
+_/etc/modules-load.d_
+	Local administrator overrides, highest priority.
+
+_/run/modules-load.d_
+	Runtime configuration, mid priority.
+
+_/lib/modules-load.d_
+	Vendor defaults, lowest priority.
+
+Directories are processed in precedence order.
+Within each directory, configuration files are processed in
+lexicographic order.
+
+If a configuration file with a given filename exists in a
+higher-priority directory, any file of the same name in a
+lower-priority directory is ignored.
+
+This precedence model mirrors *modprobe.d*(5), ensuring consistent
+behavior between module load lists and module option configuration.
+
+# DISABLING VENDOR CONFIGURATION
+
+A configuration file in _/etc/modules-load.d_ with the same name as
+one in _/lib/modules-load.d_ or _/run/modules-load.d_ shadows the
+lower-priority file.
+An empty file or comment-only file may be used to disable
+vendor-provided module load lists without removing them.
+
+# FILES
+
+/etc/modules-load.d/\*.conf++
+/run/modules-load.d/\*.conf++
+/lib/modules-load.d/\*.conf
+
+# EXAMPLE
+
+_/etc/modules-load.d/virtio-net.conf_ example:
+
+```
+# Load virtio drivers at boot
+virtio-net
+virtio-blk
+```
+
+# SEE ALSO
+
+*modules-load*(8),
+*modprobe*(8),
+*modprobe.d*(5),
+*depmod*(8)
+
+# BUGS
+
+Report issues to the project issue tracker with version, steps to
+reproduce, and expected outcome:
+
+	https://github.com/zeppe-lin/modules-load
+
+; vim: ft=scdoc cc=72 tw=70

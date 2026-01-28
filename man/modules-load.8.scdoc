@@ -1,0 +1,82 @@
+MODULES-LOAD(8)
+
+# NAME
+
+modules-load - load kernel modules from configuration files
+
+# SYNOPSIS
+
+*modules-load* [*-nv*]
+
+# DESCRIPTION
+
+The *modules-load* utility reads configuration files from the
+_modules-load.d_ directories and loads the listed kernel modules.
+Files must end with "*.conf*" and contain one module name per line.
+Lines beginning with '*#*' are comments and ignored.
+Blank lines are ignored.
+
+Only module names are accepted.
+Arguments or options are not supported.
+Module parameters must be set in *modprobe.d*(5).
+
+Configuration files are read from _/etc/modules-load.d_,
+_/run/modules-load.d_, and _/lib/modules-load.d_ in that order of
+precedence.
+Directories with higher priority are processed first.
+Within each directory, files are processed in lexicographic order.
+
+If configuration file with a given name is processed, any file of the
+same name in a lower-priority directory is ignored.
+
+An empty file or comment-only file in _/etc/modules-load.d_ shadows a
+file of the same name in _/run_ or _/lib_, effectively disabling
+vendor-provided module lists.
+
+# OPTIONS
+
+*-v*
+	Verbose.
+	Print the name of each module before loading.
+
+*-n*
+	Dry run.
+	Parse configuration files and print modules, but do not load
+	them.
+
+# FILES
+
+/etc/modules-load.d/\*.conf++
+/run/modules-load.d/\*.conf++
+/lib/modules-load.d/\*.conf
+
+# EXAMPLES
+
+Load virtio drivers at boot:
+
+```
+# echo virtio-net > /etc/modules-load.d/virtio.conf
+# echo virtio-blk >> /etc/modules-load.d/virtio.conf
+```
+
+Disable vendor defaults:
+
+```
+# touch /etc/modules-load.d/vendor.conf
+```
+
+# SEE ALSO
+
+*modules-load.d*(5),
+*modprobe*(8),
+*modprobe.d*(5),
+*depmod*(8)
+
+# BUGS
+
+Report issues to the project issue tracker with version, steps to
+reproduce, and expected outcome:
+
+	https://github.com/zeppe-lin/modules-load
+
+; vim: ft=scdoc cc=72 tw=70
