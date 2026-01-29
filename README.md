@@ -1,31 +1,39 @@
 OVERVIEW
 ========
 
-`modules-load` is a small, boot-safe utility for loading kernel
-modules from configuration files.
+`modules-load` is a lightweight, boot-safe utility for orchestrating
+kernel module loading via declarative configuration files.
 
-It is intended for use early at boot, where it reads configuration
-files from the `modules-load.d` directories and loads the listed
-kernel modules using `modprobe(8)`.
+Designed for early-boot environments, it processes configuration
+artifacts from standard `modules-load.d` directories and invokes
+`modprobe(8)` to reconcile system state.
 
-Configuration files follow a simple, declarative format:
+The utility implements a strict directory precedence and shadowing
+model:
 
-- Files must end with `.conf`
-- Each line contains one module name.
-- Empty lines and lines beginning with `#` are ignored.
-- Only bare module names are accepted.
-  Module parameters must be set in `modprobe.d(5)`.
+1. /etc/modules-load.d/ (Local Administration)
+2. /run/modules-load.d/ (Runtime/Volatile)
+3. /lib/modules-load.d/ (Vendor/Package Defaults)
 
-The directory precedence and shadowing behavior mirrors `modprobe.d`,
-allowing local administrator overrides and vendor defaults to coexist
-predictably.
+Files in higher-priority directories shadow (mask) files with the same
+name in lower-priority directories.
+
+
+FORMAT
+======
+
+- Configuration files must use the `.conf` extension.
+- Format: One bare module name per line.
+- Comments: Lines starting with `#` and empty lines are ignored.
+- Policy: Module parameters should be defined in `modprobe.d(5)`.
 
 
 RATIONALE
 =========
 
-For background on why `modules-load` replaces manual `modprobe` calls
-in `rc.modules`, see [RATIONALE.md](RATIONALE.md).
+For architectural background on the transition from imperative
+scripting to declarative orchestration, see
+[RATIONALE.md](RATIONALE.md).
 
 
 REQUIREMENTS
