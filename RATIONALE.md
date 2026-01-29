@@ -1,60 +1,97 @@
-# RATIONALE
+# RATIONALE: Declarative Kernel Module Orchestration
 
-Historically, `/etc/rc.modules` was a shell script containing explicit
-`modprobe` calls.  That model has several drawbacks:
+### The Problem: Imperative Fragmentation
 
-* **Manual edits:** packages had to instruct users to add lines such
-  as `/sbin/modprobe fuse` to `rc.modules`.  This couples package
-  behavior to local script edits and is fragile across upgrades.
+In the traditional CRUX model, `/etc/rc.modules` is a monolithic shell
+script.  This creates three primary failure points for the system
+administrator:
 
-* **Duplication:** many packages repeated the same instructions
-  instead of shipping machine-readable configuration.
+1. **Package-Script Coupling:** When a package (e.g., `fuse3`,
+   `wireguard-tools`, `v4l2loopback`) requires a kernel module, it
+   cannot fulfill its own dependency.  It must instead "instruct" the
+   user to manually edit a core system script.
+   This is a **weak link** in the deployment chain.
+2. **Upgrade Fragility:** Manual edits to `/etc/rc.modules` are
+   difficult to track.  During system upgrades or `prt-get` syncs,
+   local logic can be clobberred or bypassed, leading to silent
+   boot-time failures.
+3. **Opaque State:** To determine which modules are intended to load
+   at boot, an admin must parse shell logic (loops, conditionals, and
+   variables) rather than reading a static state.
 
-* **Mixed concerns:** persistent module policy lived alongside one-off
-  boot-time workarounds, obscuring the distinction between system
-  intent and local experimentation.
+---
 
-* **Poor auditability:** determining which modules were expected to
-  load at boot required reading and reasoning about shell code.
+### The Solution: `modules-load(8)`
 
-The `modules-load(8)` utility with configuration directories addresses
-these issues:
+Zeppe-Lin moves module management from **Imperative Scripting** (how
+to load) to **Declarative Policy** (what to load).
 
-* **Declarative configuration:** packages may ship `.conf` files in
-  `/lib/modules-load.d` to express required modules directly.
-  For example, a `fuse` package can provide
-  `/lib/modules-load.d/fuse.conf` without requiring users to edit boot
-  scripts.
+#### 1. Atomic Package Metadata
 
-* **Explicit precedence:** configuration is processed from `/etc`,
-  `/run`, and `/lib` in descending priority.
-  Vendor defaults can be overridden or disabled by shadowing files
-  with the same name.
-  This mirrors the behavior of `modprobe.d(5)` and other `*.d`
-  configuration systems.
+Packages now "own" their module requirements.  A package provides
+`/lib/modules-load.d/<name>.conf`.
 
-* **Simple format:** one module name per line, with `#` comments.
-  No arguments or embedded logic.
-  This keeps configuration readable, auditable, and easy to override.
+* **Result:** Installing the package automatically prepares the module
+  for the next boot.  Removing the package automatically cleans up the
+  requirement.  No manual script editing is required.
 
-* **Centralized logic:** ordering, precedence, diagnostics, dry-run,
-  and error handling are implemented in a single utility.
-  `rc.modules` is reduced to delegation.
+#### 2. The Shadowing Contract
 
-* **Improved auditability:** listing the contents of
-  `/etc/modules-load.d` shows which modules are expected to load at
-  boot, without inspecting shell scripts.
+Zeppe-Lin implements a strict directory precedence modeled after
+`modprobe.d(5)`:
 
-* **Early-boot suitability:** the implementation is POSIX `sh` and
-  depends only on `modprobe`, with no reliance on `/usr` or
-  non-portable behavior.
+1. **/etc/modules-load.d/** (Local Administration - Highest Priority)
+2. **/run/modules-load.d/** (Runtime/Volatile)
+3. **/lib/modules-load.d/** (Vendor/Package Default - Lowest Priority)
 
-* **Reduced maintenance:** `rc.modules` no longer requires
-  modification when new drivers are introduced.
-  Packages and administrators express policy by adding or overriding
-  configuration files.
+This allows for **Non-Destructive Overrides**:
 
-In short, `modules-load` replaces ad-hoc scripting with declarative
-and auditable configuration.
-Packages can express module requirements directly, administrators can
-override them predictably, and init scripts remain small and focused.
+* To override a vendor default, copy the file to `/etc` and modify it.
+* To **mask** (disable) a module entirely without uninstalling the
+  package, symlink the `/etc` entry to `/dev/null`.
+
+#### 3. Execution Integrity
+
+The `modules-load` utility is written in pure POSIX `sh`.
+
+* **Zero Dependencies:** It does not require `/usr` to be mounted.
+* **Idempotency:** It can be run multiple times without side effects.
+* **Auditability:** `modules-load -n` (dry-run) allows the admin to
+  see exactly what would happen without touching the kernel state.
+
+---
+
+### The Hybrid Sovereignty Model
+
+Zeppe-Lin does not deprecate `/etc/rc.modules`; it augments it.  We
+maintain a "Manual Door" to ensure the administrator remains the
+ultimate authority.
+
+* **Non-Coercive Automation:** `modules-load(8)` is a utility, not a
+  daemon.  It is invoked by init scripts.  An administrator can bypass
+  the declarative system entirely by simply commenting out the
+  modules-load call.
+* **The "Safety Valve":** For hardware requiring hyper-specific
+  loading sequences or complex logic, administrators can mix models:
+  use `/etc/rc.modules` for "exotic" hardware and let `modules-load.d`
+  handle standard package requirements.
+* **Zero-Friction Migration:** A legacy `/etc/rc.modules` file remains
+  fully functional.  Zeppe-Lin treats manual scripts as primary logic,
+  while the declarative directories serve as a secondary, automated
+  layer.
+
+---
+
+### Engineering Impact
+
+By delegating to `modules-load`, the `/etc/rc.modules` script is
+reduced from a maintenance liability to a simple delegation point.
+This architecture respects the **KISS** principle by separating
+**Policy** (the list of modules) from **Mechanism** (the `modprobe`
+logic).
+
+**In short: Zeppe-Lin replaces brittle manual edits with a
+predictable, file-based orchestration layer.**
+
+---
+
