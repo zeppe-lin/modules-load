@@ -57,7 +57,7 @@ load_file() {
 			case "$line" in
 			*' '* | *'	'*)
 				printf "modules-load: invalid entry: %s\n" \
-					"$line"
+					"$line" 1>&2
 				FAILED="$FAILED $line"
 				continue
 				;;
