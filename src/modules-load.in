@@ -156,8 +156,8 @@ main() {
 ######################################################################
 
 # Set trap handlers for interrupt signals and script exit.
-trap "interrupted" HUP INT QUIT TERM # Handle interrupt signals.
-trap "atexit" EXIT                   # Call atexit on script exit.
+trap 'interrupted' HUP INT QUIT TERM # Handle interrupt signals.
+trap 'atexit' EXIT                   # Call atexit on script exit.
 
 # Force a predictable, portable locale for glob sorting.
 export LC_ALL=POSIX
