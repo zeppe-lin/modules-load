@@ -98,8 +98,12 @@ modules_load() {
 			if has_content "$file"; then
 				load_file "$file"
 			fi
-			# Empty or comment-only file disables
-			# lower-priority config
+
+			# Even if empty or comment-only, the filename
+			# is marked as "seen".  This shadows
+			# lower-priority configs of the same name,
+			# effectively disabling vendor-provided module
+			# lists.
 		done
 	done
 }
