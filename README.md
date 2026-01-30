@@ -64,10 +64,10 @@ Configuration parameters, including installation paths, are defined in
 DOCUMENTATION
 =============
 
-Manual pages are provided in the `/man` directory and installed under
-the system manual hierarchy.
+Manual pages are shipped in `/man` and installed under the system
+manual hierarchy.
 
-See `modules-load(8)` and `modules-load.d(5)` for full usage and
+See `modules-load(8)` and `modules-load.d(5)` for usage and
 configuration details.
 
 

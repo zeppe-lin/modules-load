@@ -52,12 +52,11 @@ This allows for **Non-Destructive Overrides**:
 
 #### 3. Execution Integrity
 
-The `modules-load` utility is written in pure POSIX `sh`.
-
-* **Zero Dependencies:** It does not require `/usr` to be mounted.
-* **Idempotency:** It can be run multiple times without side effects.
-* **Auditability:** `modules-load -n` (dry-run) allows the admin to
-  see exactly what would happen without touching the kernel state.
+* **Minimal Dependencies:** Requires only `modprobe(8)`; no `/usr` mount.
+* **Idempotent Operation:** Safe to invoke repeatedly without side effects.
+* **Auditable Behavior:** `modules-load -nv` (dry-run, verbose) allows
+  the admin to see exactly what would happen without touching the
+  kernel state.
 
 ---
 
@@ -70,7 +69,7 @@ ultimate authority.
 * **Non-Coercive Automation:** `modules-load(8)` is a utility, not a
   daemon.  It is invoked by init scripts.  An administrator can bypass
   the declarative system entirely by simply commenting out the
-  modules-load call.
+  `modules-load` call.
 * **The "Safety Valve":** For hardware requiring hyper-specific
   loading sequences or complex logic, administrators can mix models:
   use `/etc/rc.modules` for "exotic" hardware and let `modules-load.d`
