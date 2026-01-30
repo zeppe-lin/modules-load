@@ -7,7 +7,7 @@ BIN8 = modules-load
 all: $(BIN8)
 
 $(BIN8): $(BIN8).in
-	sed "s/@VERSION@/$(VERSION)/" $@.in > $@
+	cp $@.in $@
 	chmod 0755 $@
 
 install: all
