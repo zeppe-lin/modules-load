@@ -1,0 +1,17 @@
+# bash completion for modules-load(8)
+# See COPYING for license terms and COPYRIGHT for notices.
+
+_modules_load()
+{
+	local cur prev opts
+	_init_completion -s || return
+
+	opts="-n -v"
+
+	if [[ "$cur" == -* ]]; then
+		COMPREPLY=($(compgen -W "$opts" -- "$cur"))
+		return 0
+	fi
+} && complete -F _modules_load modules-load
+
+# End of file.

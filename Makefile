@@ -2,7 +2,7 @@
 
 include config.mk
 
-SUBDIRS = man src
+SUBDIRS = completion man src
 
 all install uninstall clean:
 	for subdir in $(SUBDIRS); do (cd $$subdir; $(MAKE) $@); done
