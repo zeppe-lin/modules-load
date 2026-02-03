@@ -53,9 +53,12 @@ Runtime
 INSTALLATION
 ============
 
-To build and install:
+To install this package, run:
 
-    make install
+```sh
+# as root
+make install
+```
 
 Configuration parameters, including installation paths, are defined in
 `config.mk`.
