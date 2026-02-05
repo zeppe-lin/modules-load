@@ -11,9 +11,9 @@ to reconcile system state.
 The utility enforces a strict directory precedence and shadowing
 model:
 
-1. /etc/modules-load.d/ - Local administration
-2. /run/modules-load.d/ - Runtime/volatile
-3. /lib/modules-load.d/ - Vendor/package defaults
+1. `/etc/modules-load.d/` - Local administration
+2. `/run/modules-load.d/` - Runtime/volatile
+3. `/lib/modules-load.d/` - Vendor/package defaults
 
 Files in higher-priority directories shadow (mask) files with the same
 name in lower-priority directories.
