@@ -4,56 +4,59 @@ OVERVIEW
 `modules-load` is a lightweight, boot-safe utility for orchestrating
 kernel module loading via declarative configuration files.
 
-Designed for early-boot environments, it processes configuration
-artifacts from standard `modules-load.d` directories and invokes
-`modprobe(8)` to reconcile system state.
+Designed for early-boot environments, it processes configuration files
+from standard `modules-load.d` directories and invokes `modprobe(8)`
+to reconcile system state.
 
-The utility implements a strict directory precedence and shadowing
+The utility enforces a strict directory precedence and shadowing
 model:
 
-1. /etc/modules-load.d/ (Local Administration)
-2. /run/modules-load.d/ (Runtime/Volatile)
-3. /lib/modules-load.d/ (Vendor/Package Defaults)
+1. /etc/modules-load.d/ - Local administration
+2. /run/modules-load.d/ - Runtime/volatile
+3. /lib/modules-load.d/ - Vendor/package defaults
 
 Files in higher-priority directories shadow (mask) files with the same
 name in lower-priority directories.
 
+---
 
 FORMAT
 ======
 
 - Configuration files must use the `.conf` extension.
-- Format: One bare module name per line.
-- Comments: Lines starting with `#` and empty lines are ignored.
-- Policy: Module parameters should be defined in `modprobe.d(5)`.
+- Each line contains a single bare module name.
+- Lines beginning with `#` and empty lines are ignored.
+- **Module parameters should be defined in `modprobe.d(5)`.**
 
+---
 
 RATIONALE
 =========
 
-For architectural background on the transition from imperative
-scripting to declarative orchestration, see
-[RATIONALE.md](RATIONALE.md).
+For background on the transition from imperative scripting to
+declarative orchestration, see [RATIONALE.md](RATIONALE.md).
 
+---
 
 REQUIREMENTS
 ============
 
 Build-time
 ----------
-  * POSIX `sh(1p)`, `make(1p)` and "mandatory utilities"
-  * `scdoc(1)` to build manual pages
+  * POSIX `sh(1p)`, `make(1p)`, and "mandatory utilities"
+  * `scdoc(1)` to generate manual pages
 
 Runtime
 -------
   * POSIX `sh(1p)` and "mandatory utilities"
-  * `modprobe(8)` provided by `kmod`
+  * `modprobe(8)` from `kmod`
 
+---
 
 INSTALLATION
 ============
 
-To install this package, run:
+To install:
 
 ```sh
 # as root
@@ -63,6 +66,31 @@ make install
 Configuration parameters, including installation paths, are defined in
 `config.mk`.
 
+---
+
+QUICK START
+===========
+
+Create a configuration file in `/etc/modules-load.d/`:
+
+```sh
+# /etc/modules-load.d/example.conf
+# Load sound and graphics modules at boot
+snd_hda_intel
+i915
+```
+
+Then run:
+
+```sh
+# as root
+modules-load -v
+```
+
+This will read all `.conf` files from the precedence chain (`/etc`,
+`/run`, `/lib`) and invoke `modprobe(8)` for each listed module.
+
+---
 
 DOCUMENTATION
 =============
@@ -73,6 +101,7 @@ manual hierarchy.
 See `modules-load(8)` and `modules-load.d(5)` for usage and
 configuration details.
 
+---
 
 LICENSE
 =======
