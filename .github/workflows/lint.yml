@@ -3,11 +3,13 @@ name: Lint CI
 on:
   push:
     branches: [ "master" ]
-    paths: &lint_paths
+    paths: &paths
+      - ".github/**"
       - "src/modules-load.in"
+
   pull_request:
     branches: [ "master" ]
-    paths: *lint_paths
+    paths: *paths
 
 jobs:
   lint:
