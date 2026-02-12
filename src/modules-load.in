@@ -63,11 +63,12 @@ load_file() {
 				;;
 			esac
 
-			if [ "$VERBOSE" -eq 1 ]; then
-				printf "modules-load: loading %s\n" \
-					"$line"
-			else
+			if   [ "$VERBOSE" -eq 0 ]; then
 				printf "%s\n" "$line"
+			elif [ "$VERBOSE" -eq 1 ]; then
+				printf "modules-load: loading %s\n" "$line"
+			elif [ "$VERBOSE" -ge 2 ]; then
+				printf "modules-load: loading %s (from %s)\n" "$line" "$file"
 			fi
 
 			if [ "$DRY_RUN" -eq 0 ]; then
@@ -126,7 +127,7 @@ parse_options() {
 	while getopts ":nv" opt; do
 		case "$opt" in
 		n) DRY_RUN=1 ;;
-		v) VERBOSE=1 ;;
+		v) VERBOSE=$(( VERBOSE + 1)) ;;
 		\?) usage ;;
 		esac
 	done

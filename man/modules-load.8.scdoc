@@ -41,8 +41,11 @@ vendor-provided module lists.
 	them.
 
 *-v*
-	Verbose.
-	Print the name of each module before loading.
+	Increase verbosity.
+	May be specified multiple times.
+	With one *-v*, print the name of each module before loading.
+	With two or more, also print the configuration file from which
+	the module name was read.
 
 # FILES
 
