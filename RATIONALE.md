@@ -1,85 +1,129 @@
-# RATIONALE: Declarative Kernel Module Orchestration
+RATIONALE: modules-load(8)
+==========================
 
-### The Problem: Imperative Fragmentation
+Purpose
+-------
 
-Traditionally, CRUX used `/etc/rc.modules` as a single shell script.
-This approach introduces several issues:
+`modules-load(8)` provides a deterministic, declarative mechanism for
+loading Linux kernel modules during early boot.  It replaces ad-hoc
+imperative scripting with a stable configuration model.
 
-1. **Package-Script Coupling:**
-   Packages that require kernel modules (e.g., `fuse`,
-   `wireguard-tools`, `v4l2loopback`) cannot declare their own needs.
-   It must instead "instruct" the user to manually edit a core system
-   script, through the README files.
-   This is a **weak link** in the deployment chain.
+The goal is not feature expansion.  The goal is reduction of mutation
+pressure on core boot scripts and improvement of configuration
+legibility.
 
-2. **Upgrade Fragility:**
-   Manual edits to `/etc/rc.modules` are hard to track.
-   During system upgrades or `prt-get` updates, local changes can be
-   clobberred or bypassed, leading to silent boot-time failures.
+Design Principles
+-----------------
 
-3. **Opaque State:**
-   Determining intended modules requires parsing shell logic (loops,
-   conditionals, variables) rather than reading a simple list.
+**1. Separation of Policy and Mechanism**
 
----
+Module selection (policy) is expressed as static configuration files:
 
-### The Solution: `modules-load(8)`
+```
+/lib/modules-load.d/
+/run/modules-load.d/
+/etc/modules-load.d/
+```
 
-Zeppe-Lin moves from **imperative scripting** (how to load) to
-**declarative policy** (what to load).
+Module loading (mechanism) is implemented once in `modules-load(8)`,
+which invokes modprobe(8).
 
-#### 1. Package Metadata
+`rc.modules` remains an orchestration point and does not embed
+directory traversal, precedence logic, or parsing rules.
 
-Packages provide `/lib/modules-load.d/<name>.conf` to declare required
-modules.
+This keeps boot scripts thin and stable.
 
-- Installing a package prepares its modules for the next boot.
-- Removing a package cleans up automatically.
-- No manual script editing is needed.
+**2. Declarative State**
 
-#### 2. Directory Precedence
+Each configuration file contains a plain list of module names.
+No shell constructs, conditionals, or execution logic are permitted.
 
-Configuration follows a strict precedence model, similar to
-`modprobe.d(5)`:
+The intended module state can be determined by inspection of
+configuration files alone.
 
-1. `/etc/modules-load.d/` - local administration
-2. `/run/modules-load.d/` - runtime/volatile
-3. `/lib/modules-load.d/` - vendor/package defaults
+This reduces cognitive re-entry cost and avoids hidden behavior.
 
-This allows overrides without destructive edits:
+**3. Explicit Precedence Model**
 
-* Copy a file to `/etc` to override defaults.
-* Symlink to `/dev/null` to disable a module without uninstalling its
-  package.
+Configuration follows a strict, documented order:
 
-#### 3. Execution Integrity
+```
+/etc   (administrator)
+/run   (volatile/runtime)
+/lib   (vendor defaults)
+```
 
-* **Minimal Dependencies:** requires only `modprobe(8)`; no `/usr` mount.
-* **Idempotent:** safe to run multiple times.
-* **Auditable:** `modules-load -nv` shows intended actions without
-  changing kernel state.
+Higher-precedence directories shadow lower-precedence entries.
 
----
+This hierarchy defines authority clearly:
 
-### Hybrid Model
+```
+Vendor < Runtime < Administrator
+```
 
-`modules-load` augments rather than replaces `/etc/rc.modules`.
-Administrators retain full control:
+Override behavior does not require editing packaged files.
+Disabling a vendor module can be achieved without uninstalling its
+package.
 
-- It is a utility, not a daemon; invoked by init scripts and easily
-  bypassed.
-- Complex or unusual hardware can still be handled in
-  `/etc/rc.modules`.
-- Legacy scripts remain valid, while declarative configs provide a
-  cleaner default path.
+**4. Deterministic Execution**
 
----
+`modules-load(8)`:
 
-### Engineering Impact
+- Has minimal dependencies (requires **modprobe** only).
+- Does not depend on `/usr` being mounted.
+- Is idempotent.
+- Provides dry-run (`-n`) and verbose (`-v`) modes for inspection.
 
-Delegating to `modules-load` reduces `/etc/rc.modules` to a simple
-entry point.  This separation of **policy** (module lists) and
-**mechanism** (`modprobe` logic) improves clarity and reliability.
+The dry-run mode exists to make boot-time module state auditable
+without mutating kernel state.
 
-**In short: `modules-load` replaces fragile manual edits with a
-predictable, file‑based configuration model.**
+**5. Scope Limitation**
+
+`modules-load(8)` does not attempt:
+
+- Automatic hardware detection
+- Dependency resolution beyond modprobe semantics
+- Runtime module management
+- Event-driven behavior
+
+It executes once during boot and exits.
+
+This utility is not a daemon and does not introduce persistent state.
+
+Relationship to rc.modules
+--------------------------
+
+`rc.modules` invokes `modules-load(8)` if present.
+
+Manual `modprobe` calls remain possible for exceptional hardware or
+debugging scenarios.  However, declarative configuration under
+`modules-load.d` is the canonical path.
+
+This establishes a single predictable mechanism while preserving
+escape hatches for unusual cases.
+
+Maintenance Considerations
+--------------------------
+
+The introduction of `modules-load(8)`:
+
+- Moves precedence and parsing logic out of `rc.modules`.
+- Prevents repeated reinvention of module-loading logic.
+- Reduces the likelihood of local modifications to core boot scripts.
+- Encodes configuration hierarchy explicitly rather than implicitly.
+
+The additional code surface (~100 lines of POSIX shell) is intentional
+infrastructure.  It is small, self-contained, and expected to remain
+stable.
+
+The net effect is a reduction in long-term boot-script complexity and
+a decrease in configuration ambiguity.
+
+Conclusion
+----------
+
+`modules-load(8)` formalizes kernel module loading as a declarative,
+inspectable, and precedence-aware mechanism.
+
+It exists to increase legibility and reduce mutation in core boot
+scripts, not to expand system scope.
