@@ -65,7 +65,7 @@ vendor-provided module load lists without removing them.
 
 # EXAMPLE
 
-_/etc/modules-load.d/virtio-net.conf_ example:
+_/etc/modules-load.d/virtio.conf_ example:
 
 ```
 # Load virtio drivers at boot
@@ -82,9 +82,6 @@ virtio-blk
 
 # BUGS
 
-Report issues to the project issue tracker with version, steps to
-reproduce, and expected outcome:
-
-	https://github.com/zeppe-lin/modules-load
+Report issues at: https://github.com/zeppe-lin/modules-load
 
 ; vim: ft=scdoc cc=72 tw=70
