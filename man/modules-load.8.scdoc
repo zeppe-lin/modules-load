@@ -62,6 +62,7 @@ Disable vendor defaults:
 
 # BUGS
 
-Report issues at: https://github.com/zeppe-lin/modules-load
+Known issues and bug reports are tracked at:++
+https://github.com/zeppe-lin/modules-load/issues
 
 ; vim: ft=scdoc cc=72 tw=70
