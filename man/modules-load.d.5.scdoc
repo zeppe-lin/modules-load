@@ -24,6 +24,12 @@ Only module names are accepted.
 Arguments or options are not supported.
 Module parameters must be set in *modprobe.d*(5).
 
+Note that static module lists are often unnecessary.
+Most modern kernel modules support automatic loading through device
+identifiers such as PCI, USB, or DMI modaliases.
+Rely on automatic loading whenever possible, and use _modules-load.d_
+only when explicit early or unconditional loading is required.
+
 # CONFIGURATION DIRECTORIES AND PRECEDENCE
 
 Configuration files are read from the directories listed in SYNOPSIS
